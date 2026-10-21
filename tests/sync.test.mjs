@@ -206,12 +206,12 @@ describe("applySubstitutions", () => {
     [
       "skills/show-me-your-work/SKILL.md",
       "Read this run's transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path). Don't glob across `~/.cursor/projects/*/`.",
-      "Read this run's transcript under Claude Code's per-project transcripts directory at `~/.claude/projects/<encoded-cwd>/`. Don't glob across `~/.claude/projects/`.",
+      "Read this run's transcript under Claude Code's per-project transcripts directory at `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<encoded-cwd>/`. Don't glob across `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/`.",
     ],
     [
       "skills/poteto-mode/playbooks/eval.md",
       "Read each candidate's local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names this path).",
-      "Read each candidate's local transcript under Claude Code's per-project transcripts directory at `~/.claude/projects/<encoded-cwd>/`.",
+      "Read each candidate's local transcript under Claude Code's per-project transcripts directory at `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<encoded-cwd>/`.",
     ],
     [
       "skills/poteto-mode/playbooks/multi-phase-plan.md",

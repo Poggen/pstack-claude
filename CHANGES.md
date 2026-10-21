@@ -2,6 +2,14 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.98 - Transcript paths follow CLAUDE_CONFIG_DIR
+
+Claude Code writes transcripts under `$CLAUDE_CONFIG_DIR/projects/` when that variable is set, and writes nothing to `~/.claude/projects/`. The skills named the fixed path, so on such a machine `recall` and `automate-me` read a directory that is missing or belongs to another configuration. `reflect` passed that directory to `find-transcript.mjs`, which exited 1 with `ENOENT`, so the skill fell back to a digest every time. The Eval and Session pickup playbooks and `show-me-your-work` had the same gap. `worktree-audit.mjs` has read the variable since 0.9.68.
+
+Every skill and mapping that named `~/.claude/projects/` now names `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/`, the directory `worktree-audit.mjs` scans. The default reads `$HOME`, as in the SessionStart hook, because bash leaves `~` unexpanded inside double quotes. The Worktree and simulator cleanup playbook also names Claude Code's shell snapshots as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/shell-snapshots/`. The five rules in `tools/substitutions.json` that write these paths carry the new form, so a sync derives the same text and the change adds no fork. `tests/claude-config-dir.test.mjs` fails when a file outside `CHANGES.md` and `tests/` spells these paths any other way, such as `~/.claude/projects`, a `~` default, or `$CLAUDE_CONFIG_DIR` without a default.
+
+**Verified.** The new test fails on 24 lines in 12 files at 0.9.97 and passes here. With `CLAUDE_CONFIG_DIR` set, the 0.9.97 `reflect` command line exits 1 with `ENOENT`, and the new one prints the session's transcript. With the variable unset, the new line resolves to `~/.claude/projects/`.
+
 ## 0.9.97 - Hooks load from a plugin root with a backslash
 
 The Copilot and Muse SessionStart hooks pass their hooks directory to awk through `PSTACK_HOOKS` in the environment instead of `-v`. awk expands backslash escapes in a `-v` value, so a plugin root holding `\t` or `\\`, as a Windows-style path does, pointed awk at a directory that does not exist. The hooks then exited 0 with the mandate missing: Copilot sent `{"additionalContext":"\n\n\n\n"}`, and Muse sent only the sheet's role lines. Closes [#296](https://github.com/michael-denyer/pstack-claude/issues/296).
